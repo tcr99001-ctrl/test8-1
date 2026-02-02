@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- 1. 기본 테마 설정 (Dark & Terminal Vibe) --- */
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 10, 10, 10;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: black; /* 기본 배경 완전 블랙 (몰입감) */
+  /* 시스템 폰트: 차가운 터미널 느낌을 위해 Monospace 우선 적용 */
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  overflow: hidden; /* 게임 중 불필요한 스크롤 방지 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 텍스트 드래그 시 붉은색 (살인자 테마) */
+::selection {
+  background: #7f1d1d; /* red-900 */
+  color: white;
+}
+
+/* --- 2. 커스텀 유틸리티 클래스 --- */
+
+/* 스크롤바 숨기기 (EndGameScreen 로그 등 깔끔하게 보이기 위함) */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* 마스크 이미지 (로그가 위로 올라갈 때 자연스럽게 사라지게 함) */
+.mask-image-gradient {
+  mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+/* --- 3. 커스텀 키프레임 애니메이션 (The Juice) --- */
+
+/* [요청하신 코드] GUILTY 도장 찍기 효과 */
+@keyframes stamp {
+  0% { 
+    transform: scale(3) rotate(-12deg); 
+    opacity: 0; 
+  }
+  100% { 
+    transform: scale(1) rotate(-12deg); 
+    opacity: 1; 
+  }
+}
+
+/* 로딩 바 차오르는 효과 (RoleRevealOverlay) */
+@keyframes width {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+/* 페이드 인 (일반적인 등장) */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 아래에서 위로 떠오르기 (엔딩 크레딧 느낌) */
+@keyframes fade-in-up {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* 왼쪽에서 오른쪽으로 등장 (타임라인 로그) */
+@keyframes fade-in-left {
+  from { 
+    opacity: 0; 
+    transform: translateX(-10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+/* 글리치 텍스트 흔들림 (살인자 화면) */
+@keyframes glitch-skew {
+  0% { transform: skew(0deg); }
+  20% { transform: skew(-20deg); }
+  40% { transform: skew(10deg); }
+  60% { transform: skew(-5deg); }
+  80% { transform: skew(5deg); }
+  100% { transform: skew(0deg); }
+}
+
+/* 체크 아이콘 펑 하고 나타나기 (WeaponSelector) */
+@keyframes scale-in {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* --- 4. Tailwind 확장을 위한 유틸리티 클래스 매핑 --- */
+/* (컴포넌트에서 animate-stamp 등으로 쓰기 위해) */
+
+.animate-stamp {
+  animation: stamp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 1s ease-out forwards;
+}
+
+.animate-fade-in-left {
+  animation: fade-in-left 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out forwards;
+}
