@@ -1,24 +1,17 @@
-// 재배포 트리거용 주석
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Firebase와 관련된 모든 패키지를 강제로 변환(Transpile)
-  transpilePackages: [
-    'undici', 
-    'firebase', 
-    '@firebase/auth', 
-    '@firebase/app', 
-    '@firebase/component', 
-    '@firebase/database', 
-    '@firebase/firestore', 
-    '@firebase/functions', 
-    '@firebase/installations', 
-    '@firebase/messaging', 
-    '@firebase/storage', 
-    '@firebase/util'
-  ],
-  
-  // (선택) 웹팩 별칭 설정은 일단 제거하고 위 설정으로만 시도해봅니다.
-  // 에러가 지속되면 그때 다시 추가합니다.
+  // 1. 서버 전용 패키지(undici)가 브라우저 번들에 포함되지 않도록 막습니다.
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        undici: false, // 클라이언트 빌드 시 undici 제거
+      };
+    }
+    return config;
+  },
+  // 2. 혹시 모르니 트랜스파일 설정도 유지합니다.
+  transpilePackages: ['undici', 'firebase', '@firebase/auth'],
 };
 
 module.exports = nextConfig;
