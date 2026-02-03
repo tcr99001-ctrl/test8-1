@@ -1,3 +1,4 @@
+// 재배포 트리거용 주석
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Firebase와 관련된 모든 패키지를 강제로 변환(Transpile)
