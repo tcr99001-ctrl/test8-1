@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 1. 서버 전용 패키지(undici)가 브라우저 번들에 포함되지 않도록 막습니다.
+  // 1. 서버 전용 패키지(undici)가 브라우저 번들에 포함되지 않도록 'alias'로 막습니다.
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        undici: false, // 클라이언트 빌드 시 undici 제거
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'undici': false, // 여기가 핵심! undici를 빈 껍데기로 만듭니다.
       };
     }
     return config;
