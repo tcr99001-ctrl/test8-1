@@ -1,3 +1,4 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // 1. 서버 전용 패키지(undici)가 브라우저 번들에 포함되지 않도록 'alias'로 막습니다.
@@ -10,7 +11,7 @@ const nextConfig = {
     }
     return config;
   },
-  // 2. 혹시 모르니 트랜스파일 설정도 유지합니다.
+  // 2. 혹시 모르니 트랜스파일 설정도 유지합니다...
   transpilePackages: ['undici', 'firebase', '@firebase/auth'],
 };
 
