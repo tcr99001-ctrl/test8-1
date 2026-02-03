@@ -4,6 +4,7 @@ import { db, auth } from '../utils/firebase';
 import { onSnapshot, doc, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
+import EntryScreen from '../components/EntryScreen'; // [추가됨] 대문 화면
 import LobbyView from '../components/LobbyView';
 import RoleRevealOverlay from '../components/RoleRevealOverlay';
 import WeaponSelector from '../components/WeaponSelector';
@@ -15,11 +16,14 @@ import { generateCrimeScene } from '../utils/gameLogic';
 
 export default function Home() {
   const [user, setUser] = useState(null);
-  const [roomId] = useState("room_alpha"); // 테스트용 고정 룸
+  
+  // [변경점 1] roomId를 처음엔 비워둡니다.
+  const [roomId, setRoomId] = useState(null); 
+  
   const [gameData, setGameData] = useState(null);
   const [hasSeenRole, setHasSeenRole] = useState(false);
 
-  // Auth & Room Sync
+  // 1. Auth (로그인은 미리 해둠)
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (u) => {
       if (u) setUser(u);
@@ -28,23 +32,29 @@ export default function Home() {
     return () => unsubAuth();
   }, []);
 
+  // 2. Room Sync (roomId가 설정된 후에만 실행됨)
   useEffect(() => {
-    if (!user) return;
+    if (!user || !roomId) return; // [핵심] 방 코드가 없으면 DB 연결 안 함
+
     const roomRef = doc(db, 'rooms', roomId);
     const unsubRoom = onSnapshot(roomRef, (docSnap) => {
       if (docSnap.exists()) setGameData(docSnap.data());
-      else setDoc(roomRef, { players: {}, gamePhase: 'LOBBY', logs: [] });
+      else {
+        // 방이 없으면 새로 생성 (이 사람이 방장이 됨)
+        setDoc(roomRef, { players: {}, gamePhase: 'LOBBY', logs: [] });
+      }
     });
     return () => unsubRoom();
   }, [user, roomId]);
 
-  // Player Join
+  // 3. Player Join (게임 데이터가 로드되면 참가 처리)
   useEffect(() => {
-    if (user && gameData && !gameData.players[user.uid]) {
+    if (user && gameData && roomId && !gameData.players?.[user.uid]) {
       updateDoc(doc(db, 'rooms', roomId), {
         [`players.${user.uid}`]: {
           displayName: `Player ${user.uid.slice(0,4)}`,
-          isHost: Object.keys(gameData.players).length === 0,
+          // [핵심] 방에 플레이어가 0명일 때 들어오면 Host가 됨
+          isHost: !gameData.players || Object.keys(gameData.players).length === 0,
           uid: user.uid,
           isAlive: true
         }
@@ -52,10 +62,15 @@ export default function Home() {
     }
   }, [user, gameData, roomId]);
 
+
   // --- Handlers ---
 
+  // [추가됨] 방 입장 핸들러
+  const handleJoinRoom = (code) => {
+    setRoomId(code); // 여기서 roomId가 세팅되면 위의 useEffect들이 작동 시작
+  };
+
   const handleWeaponCommit = async (weapon) => {
-    // 증거 생성 및 페이즈 전환
     const evidenceList = generateCrimeScene(weapon.id);
     await updateDoc(doc(db, 'rooms', roomId), {
       gamePhase: 'INVESTIGATION',
@@ -70,8 +85,7 @@ export default function Home() {
 
   const handleVoteSubmit = async (targetId) => {
     // 투표 로직 (간소화: 마지막 투표자가 투표하면 엔딩)
-    // 실제로는 서버 사이드나 투표 수 집계 로직 필요
-    await updateDoc(doc(db, 'rooms', roomId), { gamePhase: 'ENDING', winner: 'Detective' }); // 예시
+    await updateDoc(doc(db, 'rooms', roomId), { gamePhase: 'ENDING', winner: 'Detective' }); 
   };
   
   const handleRestart = async () => {
@@ -79,8 +93,23 @@ export default function Home() {
      setHasSeenRole(false);
   };
 
+
   // --- Render Router ---
-  if (!user || !gameData) return <div className="bg-black h-screen text-red-600 font-mono p-10">CONNECTING...</div>;
+
+  // 1. 방 코드가 없으면 [입장 화면] 보여주기
+  if (!roomId) {
+    return <EntryScreen onJoin={handleJoinRoom} />;
+  }
+
+  // 2. 연결 중 화면
+  if (!user || !gameData) {
+    return (
+      <div className="h-screen bg-black flex flex-col items-center justify-center font-mono text-red-600 animate-pulse">
+        <div className="text-2xl font-black">CONNECTING...</div>
+        <div className="text-xs mt-2 text-gray-500">TARGET: {roomId}</div>
+      </div>
+    );
+  }
 
   const myRole = gameData.roles?.[user.uid]?.role;
   const isKiller = myRole === 'Killer';
