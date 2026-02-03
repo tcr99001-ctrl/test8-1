@@ -1,16 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 1. 최신 문법(Private fields 등)을 사용하는 패키지들을 강제로 변환(Transpile)합니다.
-  transpilePackages: ['undici', 'firebase', '@firebase/auth'],
-
-  // 2. Webpack 설정 (혹시 모를 브라우저/서버 충돌 방지)
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'undici': 'undici-types', // undici를 직접 번들링하지 않도록 우회
-    };
-    return config;
-  },
+  // Firebase와 관련된 모든 패키지를 강제로 변환(Transpile)
+  transpilePackages: [
+    'undici', 
+    'firebase', 
+    '@firebase/auth', 
+    '@firebase/app', 
+    '@firebase/component', 
+    '@firebase/database', 
+    '@firebase/firestore', 
+    '@firebase/functions', 
+    '@firebase/installations', 
+    '@firebase/messaging', 
+    '@firebase/storage', 
+    '@firebase/util'
+  ],
+  
+  // (선택) 웹팩 별칭 설정은 일단 제거하고 위 설정으로만 시도해봅니다.
+  // 에러가 지속되면 그때 다시 추가합니다.
 };
 
 module.exports = nextConfig;
